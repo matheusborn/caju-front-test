@@ -1,41 +1,57 @@
-
 import * as S from "./styles";
 import RegistrationCard from "../RegistrationCard";
+import { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchUsers } from "~/Store/userSlice";
+import { RootState, AppDispatch } from "~/Store";
 
 const allColumns = [
-  { status: 'REVIEW', title: "Pronto para revisar" },
-  { status: 'APPROVED', title: "Aprovado" },
-  { status: 'REPROVED', title: "Reprovado" },
+  { status: "REVIEW", title: "Pronto para revisar" },
+  { status: "APPROVED", title: "Aprovado" },
+  { status: "REPROVED", title: "Reprovado" },
 ];
 
-type Props = {
-  registrations?: any[];
-};
-const Collumns = (props: Props) => {
+const Columns = () => {
+  const dispatch: AppDispatch = useDispatch(); // Use a tipagem correta para dispatch
+  const users = useSelector((state: RootState) => state.users.users);
+  const loading = useSelector((state: RootState) => state.users.loading);
+
+  useEffect(() => {
+    console.log("aqui");
+    dispatch(fetchUsers());
+  }, [dispatch]);
+
   return (
     <S.Container>
-      {allColumns.map((collum) => {
-        return (
-          <S.Column status={collum.status} key={collum.title}>
-            <>
-              <S.TitleColumn status={collum.status}>
-                {collum.title}
-              </S.TitleColumn>
-              <S.CollumContent>
-                {props?.registrations?.map((registration) => {
-                  return (
-                    <RegistrationCard
-                      data={registration}
-                      key={registration.id}
-                    />
-                  );
-                })}
-              </S.CollumContent>
-            </>
-          </S.Column>
-        );
-      })}
+      {users.length > 0 ? (
+        !loading ? (
+          allColumns.map((column, index) => {
+            return (
+              <S.Column status={column.status} key={index}>
+                <>
+                  <S.TitleColumn status={column.status}>
+                    {column.title}
+                  </S.TitleColumn>
+
+                  <S.CollumContent>
+                    {users.map(
+                      (user: any) =>
+                        user.status === column.status && (
+                          <RegistrationCard data={user} key={user.id} />
+                        )
+                    )}
+                  </S.CollumContent>
+                </>
+              </S.Column>
+            );
+          })
+        ) : (
+          <p>Loading...</p>
+        )
+      ) : (
+        <p>Vazio</p>
+      )}
     </S.Container>
   );
 };
-export default Collumns;
+export default Columns;
